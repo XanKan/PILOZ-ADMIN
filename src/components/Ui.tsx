@@ -1,0 +1,13 @@
+import type { ReactNode } from "react";
+
+export function PageHeader({eyebrow,title,description,actions}:{eyebrow?:string;title:string;description?:string;actions?:ReactNode}){return <header className="page-header"><div>{eyebrow&&<span className="eyebrow">{eyebrow}</span>}<h1>{title}</h1>{description&&<p>{description}</p>}</div>{actions&&<div className="page-actions">{actions}</div>}</header>}
+export function Card({children,className=""}:{children:ReactNode;className?:string}){return <section className={`card ${className}`}>{children}</section>}
+export function Metric({label,value,hint,tone="default"}:{label:string;value:string|number;hint?:string;tone?:string}){return <Card className={`metric ${tone}`}><span>{label}</span><strong>{value}</strong>{hint&&<small>{hint}</small>}</Card>}
+export function Badge({children,tone="neutral"}:{children:ReactNode;tone?:"neutral"|"positive"|"warning"|"danger"|"info"}){return <span className={`badge ${tone}`}>{children}</span>}
+export function EmptyState({title,description}:{title:string;description:string}){return <div className="empty-state"><div>○</div><h3>{title}</h3><p>{description}</p></div>}
+export function Loading(){return <div className="loading"><span/><p>Chargement des données sécurisées…</p></div>}
+export function ErrorState({message,retry}:{message:string;retry?:()=>void}){return <div className="error-state"><h3>Impossible de charger cette vue</h3><p>{message}</p>{retry&&<button onClick={retry}>Réessayer</button>}</div>}
+export function Table({children}:{children:ReactNode}){return <div className="table-shell"><table>{children}</table></div>}
+export function Field({label,children,hint}:{label:string;children:ReactNode;hint?:string}){return <label className="field"><span>{label}</span>{children}{hint&&<small>{hint}</small>}</label>}
+export function Modal({title,description,children,onClose}:{title:string;description?:string;children:ReactNode;onClose:()=>void}){return <div className="modal-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget)onClose();}}><section className="modal" role="dialog" aria-modal="true"><header><div><h2>{title}</h2>{description&&<p>{description}</p>}</div><button className="icon-button" onClick={onClose} aria-label="Fermer">×</button></header>{children}</section></div>}
+export function ReauthFields(){return <fieldset className="reauth"><legend>Réauthentification sensible</legend><div className="form-grid"><Field label="Votre mot de passe"><input name="password" type="password" autoComplete="current-password" required/></Field><Field label="Code MFA"><input name="totp" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} autoComplete="one-time-code" required/></Field></div></fieldset>}

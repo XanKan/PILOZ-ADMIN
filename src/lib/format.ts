@@ -1,0 +1,5 @@
+export const euro=(cents:number|undefined)=>new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR"}).format(Number(cents||0)/100);
+export const date=(value:string|undefined)=>value?new Intl.DateTimeFormat("fr-FR",{dateStyle:"medium"}).format(new Date(value)):"—";
+export const dateTime=(value:string|undefined)=>value?new Intl.DateTimeFormat("fr-FR",{dateStyle:"short",timeStyle:"short"}).format(new Date(value)):"—";
+export const roleLabel=(role:string)=>({super_admin:"Super administrateur",support_admin:"Administration support",billing_admin:"Administration facturation",compliance_admin:"Administration conformité",read_only_admin:"Lecture seule"}[role]||role);
+export const statusLabel=(status:string|undefined)=>({active:"Actif",trialing:"Essai",past_due:"Impayé",canceled:"Résilié",expired:"Expiré",suspended:"Suspendu",deletion_pending:"Suppression encadrée",manual:"Manuel"}[status||""]||status||"—");

@@ -1,0 +1,12 @@
+import { describe,expect,it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join,resolve } from "node:path";
+import { euro,roleLabel,statusLabel } from "../src/lib/format";
+
+const root=resolve(import.meta.dirname,"..");
+describe("contrat de présentation",()=>{
+ it("formate les montants stockés en centimes",()=>{expect(euro(2900)).toMatch(/29,00/);expect(euro(59000)).toMatch(/590,00/)});
+ it("distingue les rôles plateforme",()=>{expect(roleLabel("super_admin")).toBe("Super administrateur");expect(roleLabel("billing_admin")).toContain("facturation")});
+ it("affiche des statuts honnêtes",()=>{expect(statusLabel("trialing")).toBe("Essai");expect(statusLabel("past_due")).toBe("Impayé")});
+ it("documente MRR, ARR et encaissements séparément",()=>{const formulas=readFileSync(join(root,"docs","REVENUE_FORMULAS.md"),"utf8");expect(formulas).toContain("ARR** : MRR × 12");expect(formulas).toContain("Ils ne sont jamais présentés comme des encaissements")});
+});

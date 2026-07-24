@@ -1,0 +1,22 @@
+import { createClient } from "@supabase/supabase-js";
+
+const required=["SUPABASE_URL","SUPABASE_SERVICE_ROLE_KEY","ADMIN_USER_ID","ADMIN_EMAIL","BOOTSTRAP_CONFIRM"];
+const missing=required.filter(name=>!process.env[name]);
+if(missing.length)throw new Error(`Variables manquantes : ${missing.join(", ")}`);
+if(process.env.BOOTSTRAP_CONFIRM!=="PILOZ_PLATFORM_ADMIN")throw new Error("BOOTSTRAP_CONFIRM invalide.");
+const userId=process.env.ADMIN_USER_ID,email=process.env.ADMIN_EMAIL.trim().toLowerCase();
+if(!/^[0-9a-f-]{36}$/i.test(userId))throw new Error("ADMIN_USER_ID invalide.");
+if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw new Error("ADMIN_EMAIL invalide.");
+const supabase=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+const {data:userResult,error:userError}=await supabase.auth.admin.getUserById(userId);
+if(userError||!userResult.user)throw new Error("Utilisateur Auth introuvable.");
+if(String(userResult.user.email||"").toLowerCase()!==email)throw new Error("L’e-mail ne correspond pas à l’utilisateur Auth.");
+const {count,error:countError}=await supabase.from("platform_admins").select("id",{count:"exact",head:true});
+if(countError)throw countError;
+if((count||0)>0&&!process.env.ALLOW_ADDITIONAL_ADMIN)throw new Error("Un administrateur plateforme existe déjà. Utilisez l’invitation sécurisée depuis un SA.");
+const payload={user_id:userId,email,first_name:process.env.ADMIN_FIRST_NAME?.trim()||null,last_name:process.env.ADMIN_LAST_NAME?.trim()||null,role:"super_admin",status:"active",mfa_required:true};
+const {data:admin,error:adminError}=await supabase.from("platform_admins").upsert(payload,{onConflict:"user_id"}).select("id,user_id,email,role,status").single();
+if(adminError)throw adminError;
+const {error:auditError}=await supabase.from("platform_admin_audit_events").insert({admin_id:admin.id,admin_role:"super_admin",action:"platform_admin.bootstrap",target_type:"platform_admin",target_id:admin.id,reason:"Bootstrap local sécurisé du premier administrateur",result:"success"});
+if(auditError)throw auditError;
+console.log(JSON.stringify({ok:true,adminId:admin.id,email:admin.email,role:admin.role,mfaRequired:true}));

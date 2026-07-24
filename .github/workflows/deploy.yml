@@ -1,0 +1,46 @@
+name: Vérification et déploiement Piloz Admin
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: piloz-admin-pages
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run verify
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      - name: Vérifier les protections de publication
+        run: |
+          test "$(cat public/CNAME)" = "admin.piloz.fr"
+          ! grep -R "SUPABASE_SERVICE_ROLE_KEY" src public dist
+          grep -q "Disallow: /" public/robots.txt
+      - uses: actions/upload-pages-artifact@v3
+        if: ${{ vars.ADMIN_PRODUCTION_ENABLED == 'true' }}
+        with:
+          path: dist
+  deploy:
+    if: ${{ vars.ADMIN_PRODUCTION_ENABLED == 'true' }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - name: Déployer après bootstrap SA validé
+        id: deployment
+        uses: actions/deploy-pages@v4

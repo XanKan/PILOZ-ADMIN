@@ -17,7 +17,6 @@ Configurer dans le dépôt :
 
 - secret `VITE_SUPABASE_URL` ;
 - secret `VITE_SUPABASE_ANON_KEY` ;
-- variable `ADMIN_PRODUCTION_ENABLED=true` uniquement après validation du SA ;
 - Pages avec GitHub Actions comme source.
 
 DNS restant chez le fournisseur de domaine :

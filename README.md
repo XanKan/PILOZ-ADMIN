@@ -48,7 +48,7 @@ Le script ne crée aucun mot de passe. À la première connexion, l’administra
 
 ## Publication
 
-Le workflow vérifie toujours le projet mais ne publie que si la variable GitHub `ADMIN_PRODUCTION_ENABLED` vaut `true`. Ne l’activer qu’après :
+Le workflow vérifie intégralement le projet puis publie automatiquement chaque version validée de `main`. Les prérequis de production sont :
 
 - migration appliquée ;
 - Edge Function déployée ;

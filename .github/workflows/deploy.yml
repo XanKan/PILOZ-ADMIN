@@ -30,11 +30,9 @@ jobs:
           ! grep -R "SUPABASE_SERVICE_ROLE_KEY" src public dist
           grep -q "Disallow: /" public/robots.txt
       - uses: actions/upload-pages-artifact@v3
-        if: ${{ vars.ADMIN_PRODUCTION_ENABLED == 'true' }}
         with:
           path: dist
   deploy:
-    if: ${{ vars.ADMIN_PRODUCTION_ENABLED == 'true' }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

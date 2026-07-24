@@ -7,7 +7,7 @@ Back-office interne de Piloz, distinct de `PILOZ-APP` et de `PILOZ-SITE`.
 - React + TypeScript + Vite pour l’interface privée ;
 - Supabase Auth avec MFA TOTP obligatoire ;
 - Edge Function `platform-admin-api` comme frontière serveur ;
-- fonctions PostgreSQL contrôlées par rôle, AAL2 et réauthentification récente ;
+- fonctions PostgreSQL contrôlées par rôle, AAL2 et session administrateur courte ;
 - journal d’audit append-only chaîné ;
 - aucune clé `service_role` dans le navigateur ;
 - aucune inscription publique et aucun mot de passe administrateur dans Git.

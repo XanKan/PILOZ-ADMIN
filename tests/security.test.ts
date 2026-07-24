@@ -12,4 +12,5 @@ describe("barrières du back-office",()=>{
  it("interdit l’indexation",()=>{expect(readFileSync(join(root,"public","robots.txt"),"utf8")).toContain("Disallow: /");const html=readFileSync(join(root,"index.html"),"utf8");expect(html).toContain("noindex,nofollow");expect(html).toContain("frame-ancestors 'none'")});
  it("conserve le domaine admin uniquement",()=>{expect(readFileSync(join(root,"public","CNAME"),"utf8").trim()).toBe("admin.piloz.fr")});
  it("bloque le déploiement avant activation explicite",()=>{const workflow=readFileSync(join(root,".github","workflows","deploy.yml"),"utf8");expect(workflow).toContain("ADMIN_PRODUCTION_ENABLED == 'true'");expect(workflow).toContain("npm run verify")});
+ it("ne redemande pas le mot de passe ou le TOTP pendant une session MFA active",()=>{const ui=readFileSync(join(root,"src","components","Ui.tsx"),"utf8"),reauth=readFileSync(join(root,"src","lib","reauth.ts"),"utf8");expect(ui).not.toContain("current-password");expect(ui).not.toContain("Code MFA");expect(reauth).toContain('currentLevel!=="aal2"');expect(reauth).not.toContain("signInWithPassword");expect(reauth).not.toContain("challengeAndVerify")});
 });

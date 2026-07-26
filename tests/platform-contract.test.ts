@@ -9,4 +9,5 @@ describe("contrat de présentation",()=>{
  it("distingue les rôles plateforme",()=>{expect(roleLabel("super_admin")).toBe("Super administrateur");expect(roleLabel("billing_admin")).toContain("facturation")});
  it("affiche des statuts honnêtes",()=>{expect(statusLabel("trialing")).toBe("Essai");expect(statusLabel("past_due")).toBe("Impayé")});
  it("documente MRR, ARR et encaissements séparément",()=>{const formulas=readFileSync(join(root,"docs","REVENUE_FORMULAS.md"),"utf8");expect(formulas).toContain("ARR** : MRR × 12");expect(formulas).toContain("Ils ne sont jamais présentés comme des encaissements")});
+ it("propose la réinitialisation MFA depuis la gestion utilisateur",()=>{const operations=readFileSync(join(root,"src","pages","Operations.tsx"),"utf8");expect(operations).toContain('operation==="mfa_reset"');expect(operations).toContain("Réinitialiser puis réactiver le MFA")});
 });

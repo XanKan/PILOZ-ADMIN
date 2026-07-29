@@ -2,6 +2,11 @@
 .quick-tabs button{border:0;background:transparent;border-radius:10px;padding:9px 13px;white-space:nowrap;color:var(--muted);font-weight:700}
 .quick-tabs button.active{background:var(--navy);color:#fff;box-shadow:0 4px 12px rgba(15,39,70,.15)}
 .company-form{display:grid;gap:16px;max-width:1120px}
+.company-create-simple{max-width:900px}
+.company-onboarding-handoff{background:linear-gradient(135deg,#fff,#f2fbf9)}
+.handoff-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+.handoff-list span{display:flex;align-items:flex-start;gap:8px;min-height:68px;padding:12px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.82);color:var(--muted);font-size:.72rem;line-height:1.45}
+.handoff-list svg{flex:0 0 auto;width:17px;color:var(--mint)}
 .form-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
 .table-link{border:0;background:transparent;padding:0;color:#297568;font-weight:750;text-align:left;text-decoration:underline;text-decoration-color:transparent}
 .table-link:hover{text-decoration-color:currentColor}
@@ -20,4 +25,5 @@
 .check-row{display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid var(--border);border-radius:11px;background:#f8fbfb}.check-row>input{width:18px;height:18px;min-height:0;margin:2px 0 0;accent-color:var(--mint)}.check-row>span{display:grid;gap:2px}.check-row b{font-size:.76rem}.check-row small{font-size:.66rem}
 .support-banner{position:sticky;top:72px;z-index:18;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 28px;background:#fff2c9;border-bottom:1px solid #eed58b;color:#674d08;font-size:.76rem}
 .support-banner button{border:1px solid #c9a84b;border-radius:8px;background:#fffaf0;padding:6px 10px;color:#674d08;font-weight:750;white-space:nowrap}
+@media(max-width:760px){.handoff-list{grid-template-columns:1fr}}
 @media(max-width:560px){.quick-tabs{width:100%}.form-actions{flex-direction:column}.notification-drawer{width:100%}}

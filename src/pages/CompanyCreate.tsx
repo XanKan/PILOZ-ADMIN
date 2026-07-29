@@ -1,8 +1,8 @@
 import { useMemo,useState,type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft,Building2 } from "lucide-react";
+import { ArrowLeft,Building2,Mail,UserRound } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
-import { Card,Field,Loading,PageHeader,ReauthFields } from "../components/Ui";
+import { Card,Field,Loading,PageHeader } from "../components/Ui";
 import { adminApi } from "../lib/api";
 import { reauthenticateAdmin } from "../lib/reauth";
 import { useAdminData } from "../lib/useAdminData";
@@ -11,12 +11,66 @@ import type { PlanVersion } from "../types";
 export function CompanyCreate(){
  const navigate=useNavigate(),{admin}=useAuth(),{data,loading,error}=useAdminData<{items:PlanVersion[]}>("plans.list"),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
  const plans=useMemo(()=>data?.items.filter(plan=>!plan.effective_to)||[],[data]);
- async function submit(event:FormEvent<HTMLFormElement>){event.preventDefault();if(busy)return;setBusy(true);setMessage("");const values=new FormData(event.currentTarget);
-  try{await reauthenticateAdmin(admin!.email,String(values.get("password")||""),String(values.get("totp")||""));
-   const result=await adminApi<{company:{id:string}}>("companies.create",{company:{legal_name:values.get("legal_name"),trade_name:values.get("trade_name"),company_type:values.get("company_type"),legal_form:values.get("legal_form"),siren:values.get("siren"),siret:values.get("siret"),address_line1:values.get("address_line1"),address_line2:values.get("address_line2"),postal_code:values.get("postal_code"),city:values.get("city"),country:values.get("country"),country_code:values.get("country_code"),email:values.get("email"),phone:values.get("phone"),currency:values.get("currency"),language:values.get("language"),owner_first_name:values.get("owner_first_name"),owner_last_name:values.get("owner_last_name"),owner_email:values.get("owner_email"),internal_admin_notes:values.get("internal_admin_notes"),admin_tags:String(values.get("admin_tags")||"").split(",").map(item=>item.trim()).filter(Boolean)},subscription:{plan_version_id:values.get("plan"),billing_interval:values.get("billing_interval"),status:values.get("subscription_status"),trial_days:Number(values.get("trial_days")||14),max_users:Number(values.get("max_users")||0)||null},reason:values.get("reason")});
+
+ async function submit(event:FormEvent<HTMLFormElement>){
+  event.preventDefault();
+  if(busy)return;
+  setBusy(true);setMessage("");
+  const values=new FormData(event.currentTarget),firstName=String(values.get("owner_first_name")||"").trim(),lastName=String(values.get("owner_last_name")||"").trim(),ownerEmail=String(values.get("owner_email")||"").trim().toLowerCase(),provisioningName=`Entreprise à configurer — ${firstName} ${lastName}`;
+  try{
+   await reauthenticateAdmin(admin!.email,"","");
+   const result=await adminApi<{company:{id:string}}>("companies.create",{
+    company:{
+     owner_first_name:firstName,
+     owner_last_name:lastName,
+     owner_email:ownerEmail,
+     provisioning_name:provisioningName,
+     provisioning_pending:true,
+     // Compatibilité avec l'ancienne RPC durant le déploiement progressif.
+     // La nouvelle RPC ignore cette valeur dans les données juridiques.
+     trade_name:provisioningName
+    },
+    subscription:{
+     plan_version_id:values.get("plan"),
+     billing_interval:"monthly",
+     status:"active",
+     trial_days:0,
+     max_users:null
+    },
+    reason:`Création du compte entreprise et invitation de ${ownerEmail}`
+   });
    navigate(`/companies/${result.company.id}`);
-  }catch(reason){setMessage(reason instanceof Error?reason.message:"La création a échoué.");setBusy(false);}
+  }catch(reason){
+   setMessage(reason instanceof Error?reason.message:"La création a échoué.");
+   setBusy(false);
+  }
  }
+
  if(loading)return <Loading/>;
- return <><button className="back-link" onClick={()=>navigate("/companies")}><ArrowLeft/> Entreprises</button><PageHeader eyebrow="Provisionnement contrôlé" title="Créer une entreprise" description="Le propriétaire reçoit une invitation : aucun mot de passe n’est visible par l’administrateur."/>{error&&<div className="inline-notice danger">{error}</div>}<form className="company-form" onSubmit={submit}><Card><div className="card-header"><div><h2>Entreprise</h2><p>Identité et coordonnées du nouveau compte client.</p></div><Building2/></div><div className="form-grid"><Field label="Raison sociale"><input name="legal_name" required maxLength={180}/></Field><Field label="Nom commercial"><input name="trade_name" maxLength={180}/></Field><Field label="Type d’entreprise"><input name="company_type" maxLength={80}/></Field><Field label="Forme juridique"><input name="legal_form" maxLength={80}/></Field><Field label="SIREN"><input name="siren" inputMode="numeric" pattern="[0-9]{9}"/></Field><Field label="SIRET"><input name="siret" inputMode="numeric" pattern="[0-9]{14}"/></Field><Field label="E-mail professionnel"><input name="email" type="email"/></Field><Field label="Téléphone"><input name="phone" type="tel"/></Field><Field label="Adresse"><input name="address_line1"/></Field><Field label="Complément"><input name="address_line2"/></Field><Field label="Code postal"><input name="postal_code"/></Field><Field label="Ville"><input name="city"/></Field><Field label="Pays"><input name="country" defaultValue="France"/></Field><Field label="Code pays"><input name="country_code" defaultValue="FR" maxLength={2}/></Field><Field label="Devise"><select name="currency" defaultValue="EUR"><option>EUR</option><option>USD</option><option>GBP</option></select></Field><Field label="Langue"><select name="language" defaultValue="fr"><option value="fr">Français</option><option value="en">English</option></select></Field></div></Card><Card><h2>Propriétaire</h2><div className="form-grid"><Field label="Prénom"><input name="owner_first_name" required/></Field><Field label="Nom"><input name="owner_last_name" required/></Field><Field label="E-mail d’invitation"><input name="owner_email" type="email" required/></Field></div></Card><Card><h2>Abonnement initial</h2><div className="form-grid"><Field label="Plan"><select name="plan" required>{plans.map(plan=><option key={plan.id} value={plan.id}>{plan.name} · v{plan.version}</option>)}</select></Field><Field label="Cycle"><select name="billing_interval"><option value="monthly">Mensuel</option><option value="annual">Annuel</option></select></Field><Field label="Démarrage"><select name="subscription_status"><option value="trialing">Essai gratuit</option><option value="active">Abonnement manuel actif</option></select></Field><Field label="Durée de l’essai (jours)"><input name="trial_days" type="number" min={0} max={365} defaultValue={14}/></Field><Field label="Limite d’utilisateurs"><input name="max_users" type="number" min={1}/></Field><Field label="Tags administratifs"><input name="admin_tags" placeholder="prioritaire, partenaire"/></Field></div><Field label="Notes internes"><textarea name="internal_admin_notes" maxLength={2000}/></Field></Card><Card><h2>Validation</h2><Field label="Motif obligatoire"><textarea name="reason" required maxLength={500}/></Field><ReauthFields/>{message&&<p className="form-message">{message}</p>}<footer className="form-actions"><button type="button" onClick={()=>navigate("/companies")}>Annuler</button><button className="primary-button" disabled={busy}>{busy?"Création sécurisée…":"Créer et inviter le propriétaire"}</button></footer></Card></form></>;
+ return <>
+  <button className="back-link" onClick={()=>navigate("/companies")}><ArrowLeft/> Entreprises</button>
+  <PageHeader eyebrow="Provisionnement simplifié" title="Créer une entreprise" description="Renseignez uniquement le futur propriétaire et son abonnement. Il complétera lui-même son entreprise lors de sa première connexion."/>
+  {error&&<div className="inline-notice danger">{error}</div>}
+  <form className="company-form company-create-simple" onSubmit={submit}>
+   <Card>
+    <div className="card-header"><div><h2>Propriétaire du compte</h2><p>Ces informations servent à créer l’accès et à envoyer l’invitation sécurisée.</p></div><UserRound/></div>
+    <div className="form-grid">
+     <Field label="Prénom"><input name="owner_first_name" required maxLength={100} autoComplete="given-name"/></Field>
+     <Field label="Nom"><input name="owner_last_name" required maxLength={100} autoComplete="family-name"/></Field>
+     <Field label="Adresse e-mail"><input name="owner_email" type="email" required maxLength={254} autoComplete="email"/></Field>
+     <Field label="Abonnement"><select name="plan" required defaultValue=""><option value="" disabled>Choisir un abonnement</option>{plans.map(plan=><option key={plan.id} value={plan.id}>{plan.name}</option>)}</select></Field>
+    </div>
+   </Card>
+   <Card className="company-onboarding-handoff">
+    <div className="card-header"><div><h2>Complété ensuite par le client</h2><p>Aucune donnée juridique fictive n’est créée dans son entreprise.</p></div><Building2/></div>
+    <div className="handoff-list">
+     <span><Building2/> Raison sociale, forme juridique, SIREN et SIRET</span>
+     <span><Mail/> Coordonnées, adresses et informations fiscales</span>
+     <span><UserRound/> Logo, numérotation et préférences de documents</span>
+    </div>
+    {message&&<p className="form-message" role="alert">{message}</p>}
+    <footer className="form-actions"><button type="button" onClick={()=>navigate("/companies")}>Annuler</button><button className="primary-button" disabled={busy||!plans.length}>{busy?"Création sécurisée…":"Créer l’entreprise et envoyer l’invitation"}</button></footer>
+   </Card>
+  </form>
+ </>;
 }

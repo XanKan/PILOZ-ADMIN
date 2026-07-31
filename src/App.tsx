@@ -25,6 +25,16 @@ const Dashboard = lazy(() =>
 const TrialsPage = lazy(() =>
   import("./pages/Trials").then((module) => ({ default: module.TrialsPage })),
 );
+const DemoAccountsPage = lazy(() =>
+  import("./pages/DemoAccounts").then((module) => ({
+    default: module.DemoAccountsPage,
+  })),
+);
+const AdminSettingsPage = lazy(() =>
+  import("./pages/AdminSettings").then((module) => ({
+    default: module.AdminSettingsPage,
+  })),
+);
 const AdminsPage = lazy(() =>
   import("./pages/Admins").then((module) => ({ default: module.AdminsPage })),
 );
@@ -103,6 +113,7 @@ function Gate() {
           <Route path="users" element={<UsersPage />} />
           <Route path="subscriptions" element={<SubscriptionsPage />} />
           <Route path="trials" element={<TrialsPage />} />
+          <Route path="demo-accounts" element={<DemoAccountsPage />} />
           <Route path="plans" element={<PlansPage />} />
           <Route path="billing" element={<BillingPage />} />
           <Route path="revenue" element={<RevenuePage />} />
@@ -112,7 +123,8 @@ function Gate() {
           <Route path="system" element={<SystemPage />} />
           <Route path="audit" element={<AuditPage />} />
           <Route path="admins" element={<AdminsPage />} />
-          <Route path="settings" element={<SettingsPage />} />
+          <Route path="settings" element={<AdminSettingsPage />} />
+          <Route path="settings/profile" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

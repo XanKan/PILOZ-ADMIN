@@ -14,6 +14,7 @@ import {
   Hourglass,
   LayoutDashboard,
   Menu,
+  MonitorPlay,
   PanelLeftClose,
   ReceiptText,
   Search,
@@ -34,6 +35,7 @@ const links = [
   ["/users", "Utilisateurs", Users, "users.read"],
   ["/subscriptions", "Abonnements", WalletCards, "subscriptions.read"],
   ["/trials", "Essais gratuits", Hourglass, "subscriptions.read"],
+  ["/demo-accounts", "Compte démo", MonitorPlay, "companies.read"],
   ["/plans", "Plans et fonctionnalités", Command, "plans.read"],
   ["/billing", "Facturation Piloz", ReceiptText, "billing.read"],
   ["/revenue", "Revenus", CircleDollarSign, "revenue.read"],
@@ -43,7 +45,7 @@ const links = [
   ["/system", "Système", Activity, "system.read"],
   ["/audit", "Journal d’audit", FileClock, "audit.read"],
   ["/admins", "Équipe administrative", ShieldCheck, "admin.read"],
-  ["/settings", "Paramètres administrateur", Settings, "profile.read"],
+  ["/settings", "Paramètres", Settings, "profile.read"],
 ] as const;
 
 export function AppShell() {

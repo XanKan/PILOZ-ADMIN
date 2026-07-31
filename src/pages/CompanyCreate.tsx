@@ -1,5 +1,5 @@
 import { useMemo,useState,type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,useSearchParams } from "react-router-dom";
 import { ArrowLeft,Building2,Mail,UserRound } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
 import { Card,Field,Loading,PageHeader } from "../components/Ui";
@@ -9,8 +9,12 @@ import { useAdminData } from "../lib/useAdminData";
 import type { PlanVersion } from "../types";
 
 export function CompanyCreate(){
- const navigate=useNavigate(),{admin}=useAuth(),{data,loading,error}=useAdminData<{items:PlanVersion[]}>("plans.list"),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
- const plans=useMemo(()=>data?.items.filter(plan=>!plan.effective_to)||[],[data]);
+ const navigate=useNavigate(),[searchParams]=useSearchParams(),{admin}=useAuth(),{data,loading,error}=useAdminData<{items:PlanVersion[]}>("plans.list"),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
+ const trialMode=searchParams.get("mode")==="trial";
+ const plans=useMemo(
+  ()=>data?.items.filter(plan=>!plan.effective_to&&plan.availability==="available")||[],
+  [data]
+ );
 
  async function submit(event:FormEvent<HTMLFormElement>){
   event.preventDefault();
@@ -33,11 +37,11 @@ export function CompanyCreate(){
     subscription:{
      plan_version_id:values.get("plan"),
      billing_interval:"monthly",
-     status:"active",
-     trial_days:0,
+     status:trialMode?"trialing":"active",
+     trial_days:trialMode?14:0,
      max_users:null
     },
-    reason:`Création du compte entreprise et invitation de ${ownerEmail}`
+    reason:trialMode?`Démarrage d'un essai gratuit de 14 jours pour ${ownerEmail}`:`Création du compte entreprise et invitation de ${ownerEmail}`
    });
    navigate(`/companies/${result.company.id}`);
   }catch(reason){
@@ -48,8 +52,8 @@ export function CompanyCreate(){
 
  if(loading)return <Loading/>;
  return <>
-  <button className="back-link" onClick={()=>navigate("/companies")}><ArrowLeft/> Entreprises</button>
-  <PageHeader eyebrow="Provisionnement simplifié" title="Créer une entreprise" description="Renseignez uniquement le futur propriétaire et son abonnement. Il complétera lui-même son entreprise lors de sa première connexion."/>
+  <button className="back-link" onClick={()=>navigate(trialMode?"/trials":"/companies")}><ArrowLeft/> {trialMode?"Essais gratuits":"Entreprises"}</button>
+  <PageHeader eyebrow={trialMode?"Acquisition":"Provisionnement simplifié"} title={trialMode?"Démarrer un essai gratuit":"Créer une entreprise"} description={trialMode?"Créez le compte, envoyez l’invitation sécurisée et activez automatiquement 14 jours d’essai.":"Renseignez uniquement le futur propriétaire et son abonnement. Il complétera lui-même son entreprise lors de sa première connexion."}/>
   {error&&<div className="inline-notice danger">{error}</div>}
   <form className="company-form company-create-simple" onSubmit={submit}>
    <Card>
@@ -69,7 +73,7 @@ export function CompanyCreate(){
      <span><UserRound/> Logo, numérotation et préférences de documents</span>
     </div>
     {message&&<p className="form-message" role="alert">{message}</p>}
-    <footer className="form-actions"><button type="button" onClick={()=>navigate("/companies")}>Annuler</button><button className="primary-button" disabled={busy||!plans.length}>{busy?"Création sécurisée…":"Créer l’entreprise et envoyer l’invitation"}</button></footer>
+    <footer className="form-actions"><button type="button" onClick={()=>navigate(trialMode?"/trials":"/companies")}>Annuler</button><button className="primary-button" disabled={busy||!plans.length}>{busy?"Création sécurisée…":trialMode?"Créer l’essai et envoyer l’invitation":"Créer l’entreprise et envoyer l’invitation"}</button></footer>
    </Card>
   </form>
  </>;

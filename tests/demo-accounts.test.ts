@@ -28,13 +28,26 @@ describe("essais et comptes de démonstration", () => {
     expect(page).toContain("14 jours");
   });
 
-  it("utilise une invitation sécurisée sans envoyer de mot de passe", () => {
+  it("envoie des accès temporaires sans afficher le mot de passe dans l’admin", () => {
     const page = readFileSync(
       join(root, "src", "pages", "DemoAccounts.tsx"),
       "utf8",
     );
 
-    expect(page).toContain("Aucun mot de passe n’est envoyé ou conservé en clair");
+    expect(page).toContain("mot de passe");
+    expect(page).toContain("temporaire par e-mail");
+    expect(page).toContain("Créer et envoyer les accès");
     expect(page).not.toMatch(/name=["']password["']/i);
+  });
+
+  it("autorise la suppression définitive uniquement après suspension", () => {
+    const page = readFileSync(
+      join(root, "src", "pages", "DemoAccounts.tsx"),
+      "utf8",
+    );
+
+    expect(page).toContain('"demo_accounts.delete"');
+    expect(page).toContain('item.platform_status === "suspended"');
+    expect(page).toContain("SUPPRIMER");
   });
 });

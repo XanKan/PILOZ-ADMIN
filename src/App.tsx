@@ -71,7 +71,7 @@ const AuditPage = lazy(() =>
   operations().then((module) => ({ default: module.AuditPage })),
 );
 const SettingsPage = lazy(() =>
-  operations().then((module) => ({ default: module.SettingsPage })),
+  import("./pages/SettingsPage").then((module) => ({ default: module.SettingsPage })),
 );
 
 export default function App() {
